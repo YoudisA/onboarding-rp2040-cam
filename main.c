@@ -14,39 +14,39 @@
 uint8_t image_buf[324*324]; //camera buffer, 8 bit color
 uint16_t displayBuf[240*135]; //display buffer, in a weird RGB565(16 bit encoding format) format
 
-#define FLAG_VALUE 1234; // this flag value is going to be sent across cores!
+#define FLAG_VALUE 1234 // this flag value is going to be sent across cores!
 
 uint8_t imageReady = 0;  //only if the camera buffer has a new image, we display it!
 
 
 void core1_entry() {
-    DEV_Module_init();
+    DEV_Module_Init();
     LCD_1IN14_V2_Init(HORIZONTAL);
-    LCD_1IN14_v2_Clear(BLACK);
+    LCD_1IN14_V2_Clear(BLACK);
 
     UDOUBLE Imagesize = LCD_1IN14_V2_HEIGHT * LCD_1IN14_V2_WIDTH;
 
     UWORD * BlackImage;
-    if (BlackIMage = (UWROD *)malloc(Imagesize)) == NULL) {
-        printf("Failed to allocate uwu ...\r\n")
+    if (BlackImage = ((UWROD *)malloc(Imagesize)) == NULL) {
+        printf("Failed to allocate uwu ...\r\n");
         exit(0);
     }
 
     multicore_fifo_push_blocking(FLAG_VALUE);
 
-    unit32_t ack = mulitcore_fifo_pop_blocking();
+    uint32_t ack = multicore_fifo_pop_blocking();
 
     if (ack != FLAG_VALUE){
 
         printf("Error: Core 1 failed to reviece acknowledgement from core 0!\n");
-
-    else
+    }
+    else{
     
         printf("Sucess: Core 1 Received acknowldgement frome core 0!\n");
 
     }
 
-    Paint_NewIMage((UBYTE *)BlackImage, LCD_1IN14_V2.WIDTH, LCD_1IN14_V2.HEIGHT, 0, WHITE);
+    Paint_NewImage((UBYTE *)BlackImage, LCD_1IN14_V2.WIDTH, LCD_1IN14_V2.HEIGHT, 0, WHITE);
     Paint_SetScale(65);
     Paint_SetRotate(ROTATE_0);
     Paint_DrawImage(realityLabsLogo, 0, 0, 240, 135);
@@ -61,8 +61,8 @@ void core1_entry() {
         uint16_t index = 0;
         for(int y = 134; y > 0; y--){
             for(int x = 0; x < 240; x++){
-                uint_t c = image_buf[(y)*324+(x)];
-                unit16_t imageRGB = (((c & 0xF8) << 8) | ((c & 0xFC) << 3)| ((c & 0xF8) >> 3));
+                uint8_t c = image_buf[(y)*324+(x)];
+                uint16_t imageRGB = (((c & 0xF8) << 8) | ((c & 0xFC) << 3)| ((c & 0xF8) >> 3));
                 displayBuf[index++] = (imageRGB >> 8) | (imageRGB << 8);
             }
         }
@@ -85,7 +85,7 @@ int main() {
 
     }
 
-    printf("tud_cdc_connected(%d)\n", tud_cdc_connected() ? 1 : 0)
+    printf("tud_cdc_connected(%d)\n", tud_cdc_connected() ? 1 : 0);
 
 
     multicore_launch_core1(core1_entry);
@@ -96,13 +96,13 @@ int main() {
 
     } else{
         multicore_fifo_push_blocking(FLAG_VALUE);
-        printf("Sucess: Core 0 Recieved acknowledgment from 1!\n")
+        printf("Sucess: Core 0 Recieved acknowledgment from 1!\n");
     }
 
 
     while(true) {
         if (imageReady == 1){
-            LCD_1IN14_V2_Display(displaybuf);
+            LCD_1IN14_V2_Display(displayBuf);
             imageReady = 0;
         }
         sleep_ms(1);
